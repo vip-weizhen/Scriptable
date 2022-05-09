@@ -5,7 +5,7 @@
 // 抖音搜索：大舅哥科技
 // 微信搜索小程序「大舅哥科技」
 // 获取更多精美实用 iOS 桌面组件！
-// 更多免费精选快捷指令、壁纸，等你！
+// 更多精选快捷指令、壁纸，等你！
 // ***************************
 // 环境框架   ：@ DmYY  
 // script 	 ：原作者Pih、LSP 由DJG修改
@@ -21,7 +21,7 @@ class Widget extends DJG {
     super(arg);
     this.name = "彩云天气";
     this.widget_ID = "DJG-116";
-    this.version = "V3.5";
+    this.version = "V3.6";
     this.logo = 'https://gitee.com/scriptxx_djg/imgebed/raw/master/menu/Imported_Image.png';
     this.isPhone = Device.model() == "iPhone";
     this.Run();
@@ -31,12 +31,12 @@ class Widget extends DJG {
         afternoonGreeting: "下午好~",  eveningGreeting: "晚上好~",
       },
       anniversaryText: {
-        "1-1": "年之伊始，万事如意~",  "10-1": "国之庆典，普天同庆~",  "12-25": "𝔐𝔢𝔯𝔯𝔶 ℭ𝔥𝔯𝔦𝔰𝔱𝔪𝔞𝔰~",
+        "1-1": "年之伊始，万事如意~",  "10-1": "国之庆典，普天同庆~",  "12-25": "𝔐𝔢𝔯𝔯𝔶 ℭ𝔥𝔯𝔦𝔰𝔱𝔪𝔞𝔰~",
       },
       lunarText: {
         "正月初一": "金牛贺岁迎新春~",  "正月初二": "喜迎财神福满门~",  "正月初三": "赤狗小年朝~",
       },
-      // 自定义天气对应的icon 
+      // 自定义天气对应的icon 
       weather: {
         CLEAR_DAY: '晴',                CLEAR_NIGHT: '晴',             PARTLY_CLOUDY_DAY: '多云',
         PARTLY_CLOUDY_NIGHT: '多云',     CLOUDY: '阴',                 CLOUDY_NIGHT: '阴',
@@ -46,7 +46,7 @@ class Widget extends DJG {
         STORM_RAIN: '暴雨',             FOG: '雾',                     LIGHT_SNOW: '小雪',
         MODERATE_SNOW: '中雪',          HEAVY_SNOW: '大雪',            STORM_SNOW: '暴雪',
         DUST: '浮尘',                   SAND: '沙尘',                  WIND: '大风'
-      },// 自定义天气对应的icon 
+      },// 自定义天气对应的icon 
       weatherIcos: {
         CLEAR_DAY: "https://s3.ax1x.com/2020/12/08/rpVVhD.png", // 晴（白天）
         CLEAR_NIGHT: "https://s1.ax1x.com/2020/10/26/BukPhR.png", // 晴（夜间）
@@ -99,16 +99,13 @@ class Widget extends DJG {
       if(config.runsInWidget) return await this.renderAlert('需要申请彩云天气key');
       return await this.inputKey();
   	}
-    if(!this.settings.choiceAction) {
-      this.settings.choiceAction = 'b';
-    }
     try{
       switch (this.widgetFamily) {
         case 'small':
         	await this.renderSmall(widget);
         	break;
         case 'medium':
-        	if(this.settings.choiceAction == 'a'){
+        	if(this.settings.choiceAction == 'a' || !this.settings.choiceAction){
           		await this.renderMedium(widget);
         	} else {
           		await this.renderMedium2(widget);
@@ -159,17 +156,21 @@ class Widget extends DJG {
     const lon = locData.location.longitude;
     const lat = locData.location.latitude;
     const caiyunUrl = `https://api.caiyunapp.com/v2.5/${key}/${lon},${lat}/weather.json`;
-    const caiyun = await this.http_get(caiyunUrl);//log(caiyun)
-    weather.alertInfo = caiyun.result.minutely.description; // 天气提醒
-    weather.weatherDesc = caiyun.result.hourly.description; // 天气提醒
-    weather.dailyTemperature = caiyun.result.daily.temperature; // 未来几天温度
-    weather.data = caiyun.result.hourly.temperature; // 未来24小时温度
-    weather.hourlySky = caiyun.result.hourly.skycon; // 未来24小时天气
-    weather.Mainweather = caiyun.result.daily.skycon; // 未来五天天气
-    weather.CHNAQI = caiyun.result.realtime.air_quality.aqi.chn; // 当前空气质量数值
-    weather.feelslikeT = parseInt(caiyun.result.realtime.temperature); // 当前温度
-    weather.realtimeweather = caiyun.result.realtime.skycon; // 当前天气
-    weather.comfort = caiyun.result.realtime.life_index.comfort.desc; // 当前指数
+    const caiyun = await this.http_get(caiyunUrl);
+    if(caiyun.status == 'ok') {
+      weather.alertInfo = caiyun.result.minutely.description; // 天气提醒
+      weather.weatherDesc = caiyun.result.hourly.description; // 天气提醒
+      weather.dailyTemperature = caiyun.result.daily.temperature; // 未来几天温度
+      weather.data = caiyun.result.hourly.temperature; // 未来24小时温度
+      weather.hourlySky = caiyun.result.hourly.skycon; // 未来24小时天气
+      weather.Mainweather = caiyun.result.daily.skycon; // 未来五天天气
+      weather.CHNAQI = caiyun.result.realtime.air_quality.aqi.chn; // 当前空气质量数值
+      weather.feelslikeT = parseInt(caiyun.result.realtime.temperature); // 当前温度
+      weather.realtimeweather = caiyun.result.realtime.skycon; // 当前天气
+      weather.comfort = caiyun.result.realtime.life_index.comfort.desc; // 当前指数
+    } else {
+      this.ERROR.push({error:"彩云key错误｜服务器维护"});
+    }
     
     let city = locData.postalAddress.city;
     let district = locData.postalAddress.subLocality || locData.postalAddress.street;
